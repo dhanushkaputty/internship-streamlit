@@ -121,7 +121,7 @@ st.markdown("""
 
 
 # ---------------- SIDEBAR NAVIGATION (PREMIUM WITH EMOJIS) ----------------
-st.sidebar.title("📌 Navigation")
+st.sidebar.title(" Navigation")
 
 # Week selection (with emojis)
 week_page = st.sidebar.selectbox(
@@ -591,7 +591,7 @@ elif week_page == "📙 Week 3 – Visualization":
 # ------------------- WEEK 4 CONTENT ---------------------
 # --------------------------------------------------------
 
-elif week_page == "📕 Week 4 – Reflection":
+elif week_page == "📕 Week 4 – Modeling & Reflection":
 
     # ---------------- HOME ----------------
     if section_page == "🏠 Home":
