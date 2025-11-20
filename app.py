@@ -98,7 +98,7 @@ st.markdown("""
     /* ✅ Fix selectbox SELECTED VALUE at cursor */
     div[data-baseweb="select"] > div {
         background-color: #d0f0d0 !important;  /* Light green background */
-        color: black !important;               /* Text stays visible */
+        color: white !important;               /* Text stays visible */
         font-size: 16px !important;
         font-weight: 600 !important;
     }
