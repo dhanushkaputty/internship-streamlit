@@ -68,6 +68,7 @@ import streamlit as st
 
 st.markdown("""
 <style>
+
     /* Sidebar background */
     section[data-testid="stSidebar"] {
         background-color: #f4fff4 !important;
@@ -94,9 +95,10 @@ st.markdown("""
         font-weight: 600 !important;
     }
 
-    /* Fix selectbox SELECTED VALUE */
+    /* ✅ Fix selectbox SELECTED VALUE at cursor */
     div[data-baseweb="select"] > div {
-        color: black !important;
+        background-color: #d0f0d0 !important;  /* Light green background */
+        color: black !important;               /* Text stays visible */
         font-size: 16px !important;
         font-weight: 600 !important;
     }
@@ -108,10 +110,10 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* ✅ Fix selected item visibility in dropdown */
+    /* Fix selected item visibility in dropdown */
     ul[role="listbox"] li[aria-selected="true"] {
-        background-color: #d0f0d0 !important;  /* Light green background */
-        color: white !important;                /* Ensure text stays visible */
+        background-color: #d0f0d0 !important;
+        color: black !important;
         font-weight: 600 !important;
     }
 
