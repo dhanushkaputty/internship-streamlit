@@ -64,15 +64,21 @@ st.markdown("""
 # ---------------- SIDEBAR NAVIGATION (TEXT ONLY — CLEAN) ----------------
 
 # FIX RADIO LABEL TEXT VISIBILITY (VERY IMPORTANT)
-# ---------------- STRONG FIX: MAKE SIDEBAR TEXT VISIBLE ----------------
 st.markdown("""
 <style>
-    /* Fix ALL sidebar text */
-    section[data-testid="stSidebar"] * {
-        color: black !important;
+
+    /* Sidebar background */
+    section[data-testid="stSidebar"] {
+        background-color: #f4fff4 !important;
     }
 
-    /* Fix radio & selectbox text labels */
+    /* Make ALL sidebar text visible & clean */
+    section[data-testid="stSidebar"] * {
+        color: black !important;
+        font-size: 16px !important;
+    }
+
+    /* Fix radio button text */
     div[role="radiogroup"] label p,
     div[role="radiogroup"] label span {
         color: black !important;
@@ -80,13 +86,30 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Fix selectbox label */
+    /* Fix selectbox LABEL */
     label {
         color: black !important;
         font-size: 16px !important;
+        font-weight: 600 !important;
     }
+
+    /* Fix selectbox SELECTED VALUE */
+    div[data-baseweb="select"] > div {
+        color: black !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+
+    /* Fix text inside dropdown menu */
+    ul[role="listbox"] li {
+        color: black !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
+
 
 # ---------------- SIDEBAR NAVIGATION (PREMIUM WITH EMOJIS) ----------------
 st.sidebar.title("📌 Navigation")
