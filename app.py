@@ -61,9 +61,21 @@ st.markdown("""
 
 # ---------------- SIDEBAR NAVIGATION (TEXT ONLY) ----------------
 
+# ---------------- SIDEBAR NAVIGATION (TEXT ONLY — CLEAN) ----------------
+
+# FIX RADIO LABEL TEXT VISIBILITY (VERY IMPORTANT)
+st.markdown("""
+<style>
+    div[role="radiogroup"] label p {
+        color: #2b6e2b !important;   /* Dark green text */
+        font-size: 16px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.sidebar.title("Navigation")
 
-# Week selection (no emojis, no bullets)
+# Week selection
 week_page = st.sidebar.selectbox(
     "Select Internship Week",
     (
@@ -74,9 +86,9 @@ week_page = st.sidebar.selectbox(
     )
 )
 
-# Section menu (no emojis, no bullets)
+# Section selection
 section_page = st.sidebar.radio(
-    "Choose Section",
+    "Select Section",
     (
         "Home",
         "Data",
@@ -88,20 +100,6 @@ section_page = st.sidebar.radio(
     )
 )
 
-
-# Section selection
-section_page = st.sidebar.radio(
-    "Select Section:",
-    [
-        " Home",
-        " Data",
-        " Visualizations",
-        " Map",
-        " Modeling",
-        " Insights",
-        " About"
-    ]
-)
 # ---------------------- DATASET UPLOAD ----------------------
 
 st.markdown("<div class='section-header'>📂 Upload Dataset</div>", unsafe_allow_html=True)
