@@ -64,41 +64,58 @@ st.markdown("""
 # ---------------- SIDEBAR NAVIGATION (TEXT ONLY — CLEAN) ----------------
 
 # FIX RADIO LABEL TEXT VISIBILITY (VERY IMPORTANT)
+# ---------------- STRONG FIX: MAKE SIDEBAR TEXT VISIBLE ----------------
 st.markdown("""
 <style>
-    div[role="radiogroup"] label p {
-        color: #2b6e2b !important;   /* Dark green text */
+    /* Fix ALL sidebar text */
+    section[data-testid="stSidebar"] * {
+        color: black !important;
+    }
+
+    /* Fix radio & selectbox text labels */
+    div[role="radiogroup"] label p,
+    div[role="radiogroup"] label span {
+        color: black !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+    }
+
+    /* Fix selectbox label */
+    label {
+        color: black !important;
         font-size: 16px !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.title("Navigation")
+# ---------------- SIDEBAR NAVIGATION (PREMIUM WITH EMOJIS) ----------------
+st.sidebar.title("📌 Navigation")
 
-# Week selection
+# Week selection (with emojis)
 week_page = st.sidebar.selectbox(
-    "Select Internship Week",
-    (
-        "Week 1 – Planning",
-        "Week 2 – Data Analysis",
-        "Week 3 – Visualization",
-        "Week 4 – Modeling & Reflection"
-    )
+    "📘 Internship Weeks",
+    [
+        "📘 Week 1 – Planning",
+        "📗 Week 2 – Data Analysis",
+        "📙 Week 3 – Visualization",
+        "📕 Week 4 – Modeling & Reflection"
+    ]
 )
 
-# Section selection
+# Section selection (with emojis)
 section_page = st.sidebar.radio(
-    "Select Section",
-    (
-        "Home",
-        "Data",
-        "Visualizations",
-        "Map",
-        "Modeling",
-        "Insights",
-        "About"
-    )
+    "📂 Sections",
+    [
+        "🏠 Home",
+        "📁 Data",
+        "📊 Visualizations",
+        "🗺️ Map",
+        "🤖 Modeling",
+        "🔍 Insights",
+        "ℹ️ About"
+    ]
 )
+
 
 # ---------------------- DATASET UPLOAD ----------------------
 
@@ -157,6 +174,7 @@ with st.expander("📊 Preview Dataset"):
 # --------------------------------------------------------
 
 if week_page == "📘 Week 1 – Planning":
+
 
     # ---------------- HOME ----------------
     if section_page == "🏠 Home":
@@ -278,6 +296,7 @@ if week_page == "📘 Week 1 – Planning":
 # --------------------------------------------------------
 
 elif week_page == "📗 Week 2 – Data Analysis":
+
 
     # ---------------- HOME ----------------
     if section_page == "🏠 Home":
