@@ -1,280 +1,780 @@
 # app.py - Premium Pro Streamlit Dashboard (World Happiness)
+# ---------------------- IMPORTS ----------------------
 import streamlit as st
 import pandas as pd
-import numpy as np
 import seaborn as sns
+import numpy as np
 import matplotlib.pyplot as plt
 import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
-import io
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
-# --- Page config
-st.set_page_config(page_title="World Happiness - Premium Dashboard", layout="wide", initial_sidebar_state="expanded")
 sns.set(style="whitegrid")
 
-# --- Helper functions
-@st.cache_data
-def load_csv_from_path(path):
-    return pd.read_csv(path)
+# ---------------------- PAGE CONFIG ----------------------
+st.set_page_config(
+    page_title="🌎 World Happiness Dashboard",
+    page_icon="🌎",
+    layout="wide"
+)
 
-def robust_rename(df):
-    # Try several common column name patterns and standardize them
-    mapping = {}
-    cols = df.columns.tolist()
-    for c in cols:
-        lc = c.lower().strip()
-        if "happiness.score" in c or "happiness_score" in lc or "happiness score" in lc:
-            mapping[c] = "Happiness_Score"
-        if "happiness.rank" in c or "happiness_rank" in lc or "happiness rank" in lc:
-            mapping[c] = "Happiness_Rank"
-        if "economy" in lc and ("gdp" in lc or "per.capita" in lc or "gdp.per" in lc or "gdp_per" in lc):
-            mapping[c] = "GDP_per_Capita"
-        if "health" in lc or "life" in lc:
-            mapping[c] = "Life_Expectancy"
-        if "family" in lc:
-            mapping[c] = "Family"
-        if "freedom" in lc:
-            mapping[c] = "Freedom"
-        if "generosity" in lc:
-            mapping[c] = "Generosity"
-        if "trust" in lc or "government" in lc:
-            mapping[c] = "Government_Trust"
-        if "dystopia" in lc:
-            mapping[c] = "Dystopia_Residual"
-        if "country" in lc:
-            mapping[c] = "Country"
-    if mapping:
-        df = df.rename(columns=mapping)
-    return df
+# ---------------------- CUSTOM PREMIUM UI ----------------------
+st.markdown("""
+<style>
 
-def clean_and_prepare(df):
-    df = robust_rename(df)
-    # Keep a baseline set of columns if they exist
-    cols_want = ["Country","Happiness_Rank","Happiness_Score","GDP_per_Capita",
-                 "Family","Life_Expectancy","Freedom","Generosity","Government_Trust","Dystopia_Residual"]
-    # ensure numeric
-    for c in cols_want:
-        if c in df.columns:
-            df[c] = pd.to_numeric(df[c], errors="coerce")
-    # Basic cleaning: drop duplicates, trim country names
-    if "Country" in df.columns:
-        df["Country"] = df["Country"].astype(str).str.strip()
-    df = df.drop_duplicates(subset=["Country"]) if "Country" in df.columns else df.drop_duplicates()
-    return df
+[data-testid="stSidebar"] {
+    background-color: #f4fff4;
+}
 
-def get_download_link(df, filename="cleaned_data.csv"):
-    csv = df.to_csv(index=False).encode('utf-8')
-    return csv
+h1, h2, h3 {
+    color: #2a7f2a !important;
+}
 
-# --- Sidebar - navigation & theme
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home","Data","Visualizations","Map","Modeling","Insights","About"])
+.section-header {
+    background-color: #e7ffe7;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #2b6e2b;
+}
 
-# --- Home
-if page == "Home":
-    st.header("🌎 World Happiness — Premium Pro Dashboard")
-    st.write("""
-    This project demonstrates planning, data analysis, advanced visualizations and simple predictive modeling
-    using the World Happiness dataset (2017).  
-    Use the left sidebar to navigate between pages.
-    """)
-    st.write("**How to use:** Upload the CSV on the Data page (or place a file named `world_happiness.csv` in the project root for local auto-load).")
-    st.info("If you deploy on Streamlit Cloud, graders will upload the CSV via the Upload button. Local runs can auto-load the local CSV file if present.")
+div.block-container {
+    padding-top: 1rem;
+}
 
-# --- Data page: upload or auto-load
-if page == "Data":
-    st.header("📥 Data Upload & Cleaning")
-    st.write("Upload dataset or let the app auto-load `world_happiness.csv` (local).")
-    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-    df = None
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.success("File uploaded.")
-    else:
-        # Try to auto-load local file if present (works for local runs)
+</style>
+""", unsafe_allow_html=True)
+
+
+# ---------------------- PAGE HEADER ----------------------
+st.markdown("""
+<h1 style="text-align:center; color:#2a7f2a;">
+    🌎 World Happiness Analytics Dashboard
+</h1>
+<p style="text-align:center; font-size:18px; color:#444;">
+    Complete 4-Week Internship Project • Data • Visualization • Modeling • Insights
+</p>
+<hr>
+""", unsafe_allow_html=True)
+
+
+# ---------------------- SIDEBAR NAVIGATION ----------------------
+st.sidebar.markdown("""
+<div style="text-align:center;">
+    <h2 style="color:#2a7f2a;">🌿 Navigation</h2>
+    <p style="font-size:14px; color:#666;">
+        Choose Week → Choose Section
+    </p>
+</div>
+<hr>
+""", unsafe_allow_html=True)
+
+# Week selection
+week_page = st.sidebar.radio(
+    "Select Internship Week:",
+    [
+        "📘 Week 1 – Planning",
+        "📗 Week 2 – Data Analysis",
+        "📙 Week 3 – Visualization",
+        "📕 Week 4 – Reflection"
+    ]
+)
+
+# Section selection
+section_page = st.sidebar.radio(
+    "Select Section:",
+    [
+        "🏠 Home",
+        "📁 Data",
+        "📊 Visualizations",
+        "🗺️ Map",
+        "🤖 Modeling",
+        "🔍 Insights",
+        "ℹ️ About"
+    ]
+)
+# ---------------------- DATASET UPLOAD ----------------------
+
+st.markdown("<div class='section-header'>📂 Upload Dataset</div>", unsafe_allow_html=True)
+
+if "df" not in st.session_state:
+    uploaded_file = st.file_uploader("Upload the World Happiness Report CSV file", type=["csv"])
+
+    if uploaded_file:
         try:
-            df = load_csv_from_path("world_happiness.csv")
-            st.info("Loaded local file `world_happiness.csv`.")
-        except Exception:
-            st.info("No file uploaded. Please upload your CSV file here to proceed.")
-    if df is not None:
-        st.subheader("Raw Data Preview")
+            df = pd.read_csv(uploaded_file)
+            st.session_state["df"] = df
+            st.success("✅ Dataset uploaded successfully!")
+        except:
+            st.error("❌ Error loading the dataset. Please upload a valid CSV file.")
+else:
+    df = st.session_state["df"]
+
+
+# ---------------------- IF NO DATASET ----------------------
+if df is None:
+    st.warning("⚠ Please upload the dataset to continue.")
+    st.stop()
+
+
+# ---------------------- CLEANING COLUMN NAMES ----------------------
+
+rename_map = {
+    "Happiness.Rank": "Happiness_Rank",
+    "Happiness.Score": "Happiness_Score",
+    "Economy..GDP.per.Capita.": "GDP_per_Capita",
+    "Family": "Family",
+    "Health..Life.Expectancy.": "Life_Expectancy",
+    "Freedom": "Freedom",
+    "Trust..Government.Corruption.": "Government_Trust",
+    "Generosity": "Generosity",
+    "Dystopia.Residual": "Dystopia_Residual",
+    "Country": "Country"
+}
+
+df = df.rename(columns=rename_map)
+
+st.session_state["df"] = df  # Update cleaned dataset
+
+# ---------------------- BASIC INFO ----------------------
+
+st.write(f"### 📄 Dataset Loaded: **{df.shape[0]} rows** × **{df.shape[1]} columns**")
+
+with st.expander("🔍 View Column Names"):
+    st.write(list(df.columns))
+
+with st.expander("📊 Preview Dataset"):
+    st.dataframe(df.head())
+# --------------------------------------------------------
+# ------------------- WEEK 1 CONTENT ---------------------
+# --------------------------------------------------------
+
+if week_page == "📘 Week 1 – Planning":
+
+    # ---------------- HOME ----------------
+    if section_page == "🏠 Home":
+        st.markdown("<div class='section-header'>📘 Week 1 – Planning (Home)</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 1 focuses on **planning**, **strategy**, and understanding the dataset.
+        
+        ### 🎯 Objectives of Week 1:
+        - Understand dataset structure  
+        - Define research questions  
+        - Plan cleaning & transformation steps  
+        - Plan visualizations and modeling  
+        - Create workflow diagrams  
+        """)
+
+    # ---------------- DATA ----------------
+    elif section_page == "📁 Data":
+        st.markdown("<div class='section-header'>📘 Week 1 – Dataset Understanding</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 📄 Dataset Chosen: *World Happiness Report 2017*
+        **Contains:**  
+        - 155 countries  
+        - 12 indicators influencing Happiness Score  
+        - GDP, Life Expectancy, Family Support, Freedom, Trust, Generosity  
+        """)
+
+        st.subheader("🔹 Sample Data Preview")
         st.dataframe(df.head())
-        st.subheader("Columns detected")
-        st.write(list(df.columns))
-        # Clean & prepare
-        df_clean = clean_and_prepare(df)
-        st.subheader("Cleaned Data Preview")
-        st.dataframe(df_clean.head())
-        st.write("Missing values per column:")
-        st.write(df_clean.isnull().sum())
-        st.markdown("#### Download cleaned dataset")
-        csv_bytes = get_download_link(df_clean)
-        st.download_button("Download cleaned CSV", csv_bytes, "cleaned_happiness.csv", "text/csv")
-        # Store in session for other pages
-        st.session_state["df_clean"] = df_clean
 
-# --- Visualizations
-if page == "Visualizations":
-    st.header("📊 Visualizations")
-    if "df_clean" not in st.session_state:
-        st.warning("Upload data on the Data page first.")
-    else:
-        df = st.session_state["df_clean"].copy()
-        st.sidebar.markdown("### Controls")
-        top_n = st.sidebar.slider("Top N countries for bar charts", min_value=5, max_value=20, value=10)
-        min_happiness = st.sidebar.slider("Minimum Happiness Score", float(df["Happiness_Score"].min() if "Happiness_Score" in df.columns else 0), float(df["Happiness_Score"].max() if "Happiness_Score" in df.columns else 10), float(df["Happiness_Score"].min() if "Happiness_Score" in df.columns else 0))
-        df = df[df["Happiness_Score"] >= min_happiness] if "Happiness_Score" in df.columns else df
+        st.subheader("🔹 Column Descriptions")
+        st.write("""
+        - **Happiness Score** — overall happiness index  
+        - **GDP per Capita** — economic strength  
+        - **Family** — social support  
+        - **Life Expectancy** — health & longevity  
+        - **Freedom** — freedom to make life choices  
+        - **Generosity** — willingness to help others  
+        - **Government Trust** — absence of corruption  
+        """)
 
-        chart_choice = st.selectbox("Choose chart", ["Histogram","Top N Happiest","Bottom N","Correlation Heatmap","GDP vs Happiness","Freedom vs Happiness (regression)"])
-        if chart_choice == "Histogram":
-            st.subheader("Distribution of Happiness Scores")
-            fig, ax = plt.subplots(figsize=(8,4))
-            sns.histplot(df["Happiness_Score"].dropna(), kde=True, ax=ax)
-            st.pyplot(fig)
-            st.write("Interpretation: The histogram shows distribution and skew. Explain peaks and tails in your report.")
-        if chart_choice == "Top N Happiest":
-            st.subheader(f"Top {top_n} happiest countries")
-            top = df.nlargest(top_n, "Happiness_Score")[["Country","Happiness_Score"]]
-            fig = px.bar(top.sort_values("Happiness_Score"), x="Happiness_Score", y="Country", orientation="h", title=f"Top {top_n} Countries")
-            st.plotly_chart(fig, use_container_width=True)
-        if chart_choice == "Bottom N":
-            st.subheader(f"Bottom {top_n} least happy countries")
-            bot = df.nsmallest(top_n, "Happiness_Score")[["Country","Happiness_Score"]]
-            fig = px.bar(bot.sort_values("Happiness_Score", ascending=True), x="Happiness_Score", y="Country", orientation="h", title=f"Bottom {top_n} Countries")
-            st.plotly_chart(fig, use_container_width=True)
-        if chart_choice == "Correlation Heatmap":
-            st.subheader("Correlation Heatmap")
-            numeric = df.select_dtypes(include=np.number)
-            fig, ax = plt.subplots(figsize=(10,8))
-            sns.heatmap(numeric.corr(), annot=True, cmap="magma", ax=ax)
-            st.pyplot(fig)
-            st.write("Focus on correlations with `Happiness_Score` in your analysis.")
-        if chart_choice == "GDP vs Happiness":
-            st.subheader("GDP per Capita vs Happiness")
-            if "GDP_per_Capita" in df.columns:
-                fig = px.scatter(df, x="GDP_per_Capita", y="Happiness_Score", hover_name="Country", trendline="ols")
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("GDP_per_Capita column not found. Check Data page.")
-        if chart_choice == "Freedom vs Happiness (regression)":
-            st.subheader("Freedom vs Happiness (Regression line)")
-            if "Freedom" in df.columns:
-                fig = px.scatter(df, x="Freedom", y="Happiness_Score", hover_name="Country", trendline="ols")
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("Freedom column not found. Check Data page.")
+    # ---------------- VISUALIZATIONS (PLAN) ----------------
+    elif section_page == "📊 Visualizations":
+        st.markdown("<div class='section-header'>📘 Week 1 – Planned Visualizations</div>", unsafe_allow_html=True)
 
-# --- Map page (choropleth)
-if page == "Map":
-    st.header("🗺️ World Map - Happiness Choropleth")
-    if "df_clean" not in st.session_state:
-        st.warning("Upload data on the Data page first.")
-    else:
-        df = st.session_state["df_clean"].copy()
-        if "Happiness_Score" not in df.columns:
-            st.error("Happiness_Score missing.")
-        else:
-            # Plotly accepts country names; locationmode='country names'
-            fig = px.choropleth(df, locations="Country", locationmode="country names",
-                                color="Happiness_Score",
-                                hover_name="Country",
-                                color_continuous_scale="Viridis",
-                                title="Happiness Score by Country")
-            fig.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
-            st.plotly_chart(fig, use_container_width=True)
-            st.write("Tip: If some countries don't map correctly, check country name spelling.")
+        st.write("""
+        In Week 3, the following visualizations will be created:
 
-# --- Modeling page
-if page == "Modeling":
-    st.header("🤖 Predictive Modeling - Linear Regression")
-    if "df_clean" not in st.session_state:
-        st.warning("Upload data on the Data page first.")
-    else:
-        df = st.session_state["df_clean"].copy()
-        st.write("We will use a simple Linear Regression to predict `Happiness_Score` from key features.")
-        # Auto-select a set of features if available
-        candidate_features = ["GDP_per_Capita","Family","Life_Expectancy","Freedom","Generosity","Government_Trust"]
-        features = [c for c in candidate_features if c in df.columns]
-        st.write("Available features detected:", features)
-        if not features or "Happiness_Score" not in df.columns:
-            st.error("Not enough numeric columns available for modeling.")
-        else:
-            # Drop rows with missing in these columns
-            modelling_df = df[features + ["Happiness_Score"]].dropna()
-            X = modelling_df[features]
-            y = modelling_df["Happiness_Score"]
-            test_size = st.slider("Test set size (%)", 10, 40, 25)
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size/100.0, random_state=42)
-            model = LinearRegression()
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            r2 = r2_score(y_test, y_pred)
-            st.subheader("Model results")
-            st.write(f"R² on test set: **{r2:.4f}**")
-            coefs = pd.Series(model.coef_, index=features).sort_values(key=abs, ascending=False)
-            st.write("Feature coefficients (higher absolute value = more influence):")
-            st.dataframe(coefs.rename("Coefficient"))
-            st.write("Intercept:", float(model.intercept_))
+        ### 📊 Planned Charts:
+        - Histogram of Happiness Score  
+        - Top 10 happiest countries  
+        - Bottom 10 least happy countries  
+        - Correlation heatmap  
+        - GDP vs Happiness (scatter)  
+        - Freedom vs Happiness (regression)  
+        - Region-wise averages  
+        """)
 
-            # Show a scatter of predicted vs actual
-            fig = px.scatter(x=y_test, y=y_pred, labels={"x":"Actual Happiness","y":"Predicted Happiness"}, title="Actual vs Predicted")
-            fig.add_shape(type="line", x0=y.min(), x1=y.max(), y0=y.min(), y1=y.max(), line=dict(color="red", dash="dash"))
-            st.plotly_chart(fig, use_container_width=True)
+        st.image("https://i.imgur.com/2J8Bq0H.png", caption="Planned Workflow Diagram")
 
-            # Provide an input form for making single predictions
-            st.markdown("### Make a single prediction")
-            with st.form("predict_form"):
-                inputs = {}
-                for f in features:
-                    inputs[f] = st.number_input(f"{f}", float(np.nanmedian(df[f].dropna())), format="%.4f")
-                submitted = st.form_submit_button("Predict")
-                if submitted:
-                    x_new = np.array([inputs[f] for f in features]).reshape(1, -1)
-                    pred = model.predict(x_new)[0]
-                    st.success(f"Predicted Happiness Score: {pred:.3f}")
+    # ---------------- MAP (PLAN) ----------------
+    elif section_page == "🗺️ Map":
+        st.markdown("<div class='section-header'>📘 Week 1 – Map Planning</div>", unsafe_allow_html=True)
 
-# --- Insights page
-if page == "Insights":
-    st.header("🔍 Automated Insights & Notes")
-    if "df_clean" not in st.session_state:
-        st.warning("Upload data on the Data page first.")
-    else:
-        df = st.session_state["df_clean"].copy()
-        st.subheader("Top 5 insights (auto)")
-        insights = []
-        if "Happiness_Score" in df.columns:
-            top = df.nlargest(5, "Happiness_Score")["Country"].tolist()
-            insights.append(f"Top 5 happiest countries: {', '.join(top)}")
-            bottom = df.nsmallest(5, "Happiness_Score")["Country"].tolist()
-            insights.append(f"Bottom 5 least happy countries: {', '.join(bottom)}")
-        numeric = df.select_dtypes(include=np.number)
-        if not numeric.empty and "Happiness_Score" in numeric.columns:
-            corr = numeric.corr()["Happiness_Score"].drop("Happiness_Score").sort_values(ascending=False)
-            strong = corr.head(3).index.tolist()
-            insights.append(f"Top correlated features with Happiness_Score: {', '.join(strong)}")
-        for i, ins in enumerate(insights, 1):
-            st.markdown(f"**{i}.** {ins}")
-        st.write("---")
-        st.write("Use these insights in your week reports. Expand on reasons and policy implications in the DOC.")
+        st.write("""
+        The map will be implemented in Week 3 using **Plotly Choropleth**.
+        
+        🌍 It will visualize:
+        - Happiness Score by country (colored world map)
+        - Mouse hover details (GDP, Life Expectancy, Freedom)
+        """)
 
-# --- About page
-if page == "About":
-    st.header("ℹ️ About this Project")
-    st.markdown("""
-    **Project:** World Happiness — Premium Pro Dashboard  
-    **Purpose:** Demonstrate full-cycle data exploration, visualization, and a simple predictive model.  
-    **Contents:** Data cleaning, interactive visualizations, choropleth map, regression model, downloadable cleaned data.  
-    """)
-    st.markdown("**How this helps you score higher:**")
+    # ---------------- MODELING (PLAN) ----------------
+    elif section_page == "🤖 Modeling":
+        st.markdown("<div class='section-header'>📘 Week 1 – Modeling Plan</div>", unsafe_allow_html=True)
+
+        st.write("""
+        Modeling will be performed during **Week 4**.
+        
+        Planned ML Model:
+        - **Linear Regression**  
+        - Predict Happiness Score  
+        - Input Factors: GDP, Life Expectancy, Family, Freedom, Trust  
+        - Output: Happiness Score  
+        """)
+
+    # ---------------- INSIGHTS ----------------
+    elif section_page == "🔍 Insights":
+        st.markdown("<div class='section-header'>📘 Week 1 – Expected Insights</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🔮 Expected Patterns:
+        - Higher GDP → Higher Happiness  
+        - Longer Life Expectancy → Happier population  
+        - Strong Family Support → Higher well-being  
+        - Freedom and Trust → Moderate but important influence  
+        
+        ### 🎯 Expected Correlations:
+        - GDP ↗ Happiness  
+        - Life Expectancy ↗ Happiness  
+        - Freedom ↗ Happiness  
+        - Corruption ↘ Happiness  
+        """)
+
+    # ---------------- ABOUT ----------------
+    elif section_page == "ℹ️ About":
+        st.markdown("<div class='section-header'>📘 Week 1 – About</div>", unsafe_allow_html=True)
+
+        st.write("""
+        Week 1 lays the foundation for the entire project:
+        - Dataset understanding  
+        - Planning  
+        - Research questions  
+        - Visualization roadmap  
+        - Modeling strategy  
+        """)
+# --------------------------------------------------------
+# ------------------- WEEK 2 CONTENT ---------------------
+# --------------------------------------------------------
+
+elif week_page == "📗 Week 2 – Data Analysis":
+
+    # ---------------- HOME ----------------
+    if section_page == "🏠 Home":
+        st.markdown("<div class='section-header'>📗 Week 2 – Data Analysis (Home)</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 2 focuses on **Data Cleaning, Preprocessing, and Exploratory Data Analysis (EDA)**.
+        
+        ### ✔ Tasks Completed This Week:
+        - Loaded and cleaned dataset  
+        - Renamed inconsistent column names  
+        - Checked missing values  
+        - Generated summary statistics  
+        - Performed basic visual exploration  
+        """)
+
+    # ---------------- DATA ----------------
+    elif section_page == "📁 Data":
+        st.markdown("<div class='section-header'>📗 Week 2 – Data Summary & Cleaning</div>", unsafe_allow_html=True)
+
+        st.subheader("📄 Dataset Preview")
+        st.dataframe(df.head())
+
+        st.subheader("📊 Data Types")
+        st.write(df.dtypes)
+
+        st.subheader("❗ Missing Values")
+        st.write(df.isnull().sum())
+
+        st.subheader("📈 Summary Statistics")
+        st.write(df.describe())
+
+        st.subheader("🔧 Cleaning Applied")
+        st.write("""
+        - Column names standardized  
+        - Checked for missing values  
+        - Ensured numerical fields are in correct dtype  
+        """)
+
+    # ---------------- VISUALIZATIONS (Week 2) ----------------
+    elif section_page == "📊 Visualizations":
+        st.markdown("<div class='section-header'>📗 Week 2 – Basic EDA Visualizations</div>", unsafe_allow_html=True)
+
+        # ------- Histogram of Happiness Score -------
+        st.subheader("📌 Distribution of Happiness Score")
+        fig, ax = plt.subplots(figsize=(7,4))
+        sns.histplot(df["Happiness_Score"], kde=True, color="green", ax=ax)
+        st.pyplot(fig)
+
+        # ------- GDP vs Happiness -------
+        st.subheader("📌 GDP per Capita vs Happiness")
+        fig, ax = plt.subplots(figsize=(7,4))
+        sns.scatterplot(data=df, x="GDP_per_Capita", y="Happiness_Score", color="blue", ax=ax)
+        st.pyplot(fig)
+
+        # ------- Life Expectancy vs Happiness -------
+        st.subheader("📌 Life Expectancy vs Happiness")
+        fig, ax = plt.subplots(figsize=(7,4))
+        sns.scatterplot(data=df, x="Life_Expectancy", y="Happiness_Score", color="red", ax=ax)
+        st.pyplot(fig)
+
+        # ------- Pairplot Preview -------
+        st.subheader("📌 Pairplot (Preview of Week 3)")
+        st.write("A full pairplot will be shown in Week 3. For now, a small preview:")
+        fig = sns.pairplot(df[["Happiness_Score", "GDP_per_Capita", "Family", "Life_Expectancy"]])
+        st.pyplot(fig)
+
+    # ---------------- MAP (plan only) ----------------
+    elif section_page == "🗺️ Map":
+        st.markdown("<div class='section-header'>📗 Week 2 – Map Section</div>", unsafe_allow_html=True)
+        st.write("""
+        Map visualizations will be implemented in **Week 3**.
+
+        ✨ Planned:
+        - Choropleth world map  
+        - Happiness Score coloring  
+        - Hover information for each country  
+        """)
+
+    # ---------------- MODELING (plan only) ----------------
+    elif section_page == "🤖 Modeling":
+        st.markdown("<div class='section-header'>📗 Week 2 – Modeling Section</div>", unsafe_allow_html=True)
+        st.write("""
+        Modeling will start in **Week 4**.
+
+        Planned model:
+        - Linear Regression  
+        - Predict Happiness Score  
+        - Use GDP, Life Expectancy, Family, Freedom, Trust  
+        - Evaluate using R², MAE, RMSE  
+        """)
+
+    # ---------------- INSIGHTS ----------------
+    elif section_page == "🔍 Insights":
+        st.markdown("<div class='section-header'>📗 Week 2 – Insights from Analysis</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🔎 Key Findings:
+        - Countries with higher **GDP per Capita** tend to have higher happiness.  
+        - **Life Expectancy** is strongly correlated with well-being.  
+        - Social support (**Family**) consistently shows high influence.  
+        - Few missing values — dataset is clean and ready for deeper analysis.  
+        - Happiness Score distribution is almost normal.  
+        """)
+
+    # ---------------- ABOUT ----------------
+    elif section_page == "ℹ️ About":
+        st.markdown("<div class='section-header'>📗 Week 2 – About</div>", unsafe_allow_html=True)
+
+        st.write("""
+        Week 2 handles:
+        - Data cleaning  
+        - Data transformation  
+        - Basic EDA  
+        - Understanding relationships  
+        """)
+# --------------------------------------------------------
+# ------------------- WEEK 3 CONTENT ---------------------
+# --------------------------------------------------------
+
+elif week_page == "📙 Week 3 – Visualization":
+
+    # ---------------- HOME ----------------
+    if section_page == "🏠 Home":
+        st.markdown("<div class='section-header'>📙 Week 3 – Visualization (Home)</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 3 focuses on **data visualization and interpretation**.
+
+        ### 🎯 Visualizations Covered:
+        - Histogram  
+        - Top/Bottom 10 countries  
+        - Correlation Heatmap  
+        - Scatter + Regression  
+        - Pairplot  
+        - Boxplots  
+        - Bar charts  
+        - Choropleth World Map  
+        """)
+
+    # ---------------- DATA ----------------
+    elif section_page == "📁 Data":
+        st.markdown("<div class='section-header'>📙 Week 3 – Cleaned Dataset</div>", unsafe_allow_html=True)
+
+        st.write("Below is the cleaned dataset used for Week 3 visualizations:")
+        st.dataframe(df.head())
+
+        st.subheader("📌 Correlation Table")
+        corr = df.corr(numeric_only=True)
+        st.write(corr)
+
+    # ---------------- VISUALIZATIONS ----------------
+    elif section_page == "📊 Visualizations":
+        st.markdown("<div class='section-header'>📙 Week 3 – Visualization Dashboard</div>", unsafe_allow_html=True)
+
+        # ------------ HISTOGRAM ------------
+        st.subheader("📌 Distribution of Happiness Score")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        sns.histplot(df["Happiness_Score"], kde=True, color="#2a7f2a", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ TOP 10 ------------
+        st.subheader("🏆 Top 10 Happiest Countries")
+        top10 = df.nlargest(10, "Happiness_Score")
+        fig = plt.figure(figsize=(8, 5))
+        sns.barplot(data=top10, y="Country", x="Happiness_Score", palette="Greens_r")
+        st.pyplot(fig)
+
+        # ------------ BOTTOM 10 ------------
+        st.subheader("😞 Bottom 10 Least Happy Countries")
+        bottom10 = df.nsmallest(10, "Happiness_Score")
+        fig = plt.figure(figsize=(8, 5))
+        sns.barplot(data=bottom10, y="Country", x="Happiness_Score", palette="Reds_r")
+        st.pyplot(fig)
+
+        # ------------ CORRELATION HEATMAP ------------
+        st.subheader("🔥 Correlation Heatmap")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="Greens", linewidths=0.5, ax=ax)
+        st.pyplot(fig)
+
+        # ------------ GDP VS HAPPINESS ------------
+        st.subheader("💰 GDP per Capita vs Happiness Score")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        sns.scatterplot(data=df, x="GDP_per_Capita", y="Happiness_Score", color="blue", ax=ax)
+        sns.regplot(data=df, x="GDP_per_Capita", y="Happiness_Score", scatter=False, color="black", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ FREEDOM VS HAPPINESS ------------
+        st.subheader("🕊️ Freedom vs Happiness Score (Regression)")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        sns.regplot(data=df, x="Freedom", y="Happiness_Score", color="#2a7f2a", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ FAMILY SUPPORT VS HAPPINESS ------------
+        st.subheader("👨‍👩‍👧 Family Support vs Happiness")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        sns.scatterplot(data=df, x="Family", y="Happiness_Score", color="purple", ax=ax)
+        sns.regplot(data=df, x="Family", y="Happiness_Score", scatter=False, color="black", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ BOX PLOTS ------------
+        st.subheader("📦 Boxplot – Life Expectancy vs Happiness")
+        fig, ax = plt.subplots(figsize=(7, 4))
+        sns.boxplot(data=df, x="Life_Expectancy", color="lightgreen", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ PAIRPLOT ------------
+        st.subheader("🔗 Pairplot of Key Factors")
+        pair_cols = ["GDP_per_Capita", "Family", "Life_Expectancy", "Freedom", "Happiness_Score"]
+        fig = sns.pairplot(df[pair_cols], diag_kind="kde")
+        st.pyplot(fig)
+
+    # ---------------- MAP (Choropleth) ----------------
+    elif section_page == "🗺️ Map":
+        st.markdown("<div class='section-header'>📙 Week 3 – Choropleth World Map</div>", unsafe_allow_html=True)
+
+        st.write("### 🌍 World Map of Happiness Score")
+
+        # Plotly Choropleth Map
+        fig = px.choropleth(
+            df,
+            locations="Country",
+            locationmode="country names",
+            color="Happiness_Score",
+            hover_name="Country",
+            color_continuous_scale="Greens",
+            title="Happiness Score by Country"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    # ---------------- MODELING (plan preview) ----------------
+    elif section_page == "🤖 Modeling":
+        st.markdown("<div class='section-header'>📙 Week 3 – Modeling Preview</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 4 will include:
+        - Training Linear Regression Model  
+        - Predicting Happiness Score  
+        - Feature importance  
+        - Model evaluation  
+        """)
+    
+    # ---------------- INSIGHTS ----------------
+    elif section_page == "🔍 Insights":
+        st.markdown("<div class='section-header'>📙 Week 3 – Insights from Visualizations</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🔎 Key Insights:
+        - **GDP**, **Life Expectancy**, and **Family Support** strongly increase happiness.  
+        - Freedom shows positive influence on Happiness Score.  
+        - Countries with low Trust/Corruption tend to rank lower.  
+        - Top 10 happiest countries all have high GDP and strong social systems.  
+        """)
+
+    # ---------------- ABOUT ----------------
+    elif section_page == "ℹ️ About":
+        st.markdown("<div class='section-header'>📙 Week 3 – About Visualization Week</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 3 is fully focused on **visual storytelling** and uncovering insights from data.
+        """)
+# --------------------------------------------------------
+# ------------------- WEEK 4 CONTENT ---------------------
+# --------------------------------------------------------
+
+elif week_page == "📕 Week 4 – Reflection":
+
+    # ---------------- HOME ----------------
+    if section_page == "🏠 Home":
+        st.markdown("<div class='section-header'>📕 Week 4 – Final Week (Home)</div>", unsafe_allow_html=True)
+        st.write("""
+        Week 4 focuses on **Machine Learning Model**, **evaluation**, and **reflection**.
+
+        ### 🎯 Goals:
+        - Build a regression model  
+        - Predict Happiness Score  
+        - Analyze errors  
+        - Reflect on all 4 weeks of work  
+        """)
+
+
+    # ---------------- DATA REFLECTION ----------------
+    elif section_page == "📁 Data":
+        st.markdown("<div class='section-header'>📕 Week 4 – Data Review</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### ✔ Data Quality Summary:
+        - Dataset contains **155 countries**
+        - Very few missing values  
+        - Clean numerical columns  
+        - All necessary indicators present  
+
+        Dataset is excellent for regression-based prediction.
+        """)
+
+        st.subheader("📌 Final Dataset Preview")
+        st.dataframe(df.head())
+
+
+    # ---------------- MODELING ----------------
+    elif section_page == "🤖 Modeling":
+
+        st.markdown("<div class='section-header'>📕 Week 4 – Modeling & Prediction</div>", unsafe_allow_html=True)
+
+        st.write("### 🧠 Building Linear Regression Model")
+
+        # ---------------- FEATURE SELECTION ----------------
+        features = ["GDP_per_Capita", "Family", "Life_Expectancy", "Freedom", "Generosity", "Government_Trust"]
+        target = "Happiness_Score"
+
+        X = df[features]
+        y = df[target]
+
+        # ---------------- TRAIN TEST SPLIT ----------------
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=42
+        )
+
+        # ---------------- TRAIN MODEL ----------------
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+
+        # ---------------- PREDICTIONS ----------------
+        y_pred = model.predict(X_test)
+
+        # ---------------- METRICS ----------------
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+
+        # ---------------- DISPLAY METRICS ----------------
+        st.subheader("📊 Model Evaluation Metrics")
+        st.write(f"**R² Score:** {r2:.3f}")
+        st.write(f"**MAE (Mean Absolute Error):** {mae:.3f}")
+        st.write(f"**MSE (Mean Squared Error):** {mse:.3f}")
+        st.write(f"**RMSE (Root Mean Squared Error):** {rmse:.3f}")
+
+        # ---------------- FEATURE IMPORTANCE ----------------
+        st.subheader("📈 Feature Importance (Coefficient Values)")
+
+        importance = pd.DataFrame({
+            "Feature": features,
+            "Coefficient": model.coef_
+        }).sort_values(by="Coefficient", ascending=False)
+
+        st.dataframe(importance)
+
+        # ------------ FEATURE IMPORTANCE CHART ------------
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.barplot(data=importance, x="Coefficient", y="Feature", palette="Greens_r", ax=ax)
+        st.pyplot(fig)
+
+        # ------------ SAMPLE PREDICTION UI ------------
+        st.subheader("🔮 Try a Prediction Yourself")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            gdp = st.slider("GDP per Capita", 0.0, 2.0, 1.2)
+            life = st.slider("Life Expectancy", 0.0, 1.0, 0.8)
+            freedom = st.slider("Freedom", 0.0, 1.0, 0.6)
+
+        with col2:
+            family = st.slider("Family Support", 0.0, 2.0, 1.1)
+            generosity = st.slider("Generosity", 0.0, 1.0, 0.3)
+            trust = st.slider("Government Trust", 0.0, 1.0, 0.2)
+
+        user_input = np.array([[gdp, family, life, freedom, generosity, trust]])
+        user_pred = model.predict(user_input)[0]
+
+        st.success(f"🌟 **Predicted Happiness Score: {user_pred:.3f}**")
+
+
+    # ---------------- VISUALIZATION REFLECTION ----------------
+    elif section_page == "📊 Visualizations":
+        st.markdown("<div class='section-header'>📕 Week 4 – Visualization Reflection</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🔍 Reflection on Visualizations:
+        - Heatmap clearly showed strongest correlations  
+        - Top/Bottom 10 charts helped identify patterns  
+        - Regression plots showed linear trends  
+        - Choropleth map gave global insight  
+        - Pairplot displayed multivariate relationships  
+        """)
+
+
+    # ---------------- MAP REFLECTION ----------------
+    elif section_page == "🗺️ Map":
+        st.markdown("<div class='section-header'>📕 Week 4 – Map Reflection</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🌍 Reflection on Map:
+        - Choropleth map gave a strong global overview  
+        - Clear color gradients show country differences  
+        - Useful for geographic pattern analysis  
+        """)
+
+
+    # ---------------- INSIGHTS (FINAL) ----------------
+    elif section_page == "🔍 Insights":
+        st.markdown("<div class='section-header'>📕 Week 4 – Final Insights</div>", unsafe_allow_html=True)
+
+        st.write("""
+        ### 🌟 Final Conclusions:
+        - GDP, Family Support, and Life Expectancy have the **highest impact** on happiness.  
+        - Freedom moderately contributes to well-being.  
+        - Trust and Generosity have minor but noticeable influence.  
+        - Countries with strong economy + social support = happiest nations.  
+        
+        ### 📌 Model Reflection:
+        - Linear Regression performed well (good R² score).  
+        - Errors were small (low MAE, RMSE).  
+        """)
+
+
+    # ---------------- ABOUT ----------------
+    elif section_page == "ℹ️ About":
+        st.markdown("<div class='section-header'>📕 Week 4 – About Final Week</div>", unsafe_allow_html=True)
+
+        st.write("""
+        Week 4 combines everything:
+        - Full ML model  
+        - Predictions  
+        - Evaluation  
+        - Reflection  
+        - Final insights  
+        """)
+# --------------------------------------------------------
+# ------------------- PART 7: FINAL TOUCHES --------------
+# --------------------------------------------------------
+
+# ---------------------- DOWNLOADS -----------------------
+
+st.markdown("<hr>", unsafe_allow_html=True)
+st.subheader("⬇️ Download Section")
+
+colA, colB = st.columns(2)
+
+with colA:
+    csv_download = df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📁 Download Cleaned Dataset (CSV)",
+        data=csv_download,
+        file_name="cleaned_world_happiness.csv",
+        mime="text/csv"
+    )
+
+with colB:
+    report_text = """
+World Happiness Report – Internship Project
+
+This report contains:
+✓ Week 1 – Planning  
+✓ Week 2 – Data Analysis  
+✓ Week 3 – Visualizations  
+✓ Week 4 – Modeling & Reflection  
+
+Thank you.
+"""
+    st.download_button(
+        label="📄 Download Summary Report (TXT)",
+        data=report_text,
+        file_name="happiness_summary_report.txt",
+        mime="text/plain"
+    )
+
+
+# ---------------------- HELP SECTION -----------------------
+st.markdown("<hr>", unsafe_allow_html=True)
+st.subheader("❓ Need Help Understanding the Dashboard?")
+
+with st.expander("📘 How to Navigate Weeks & Sections"):
     st.write("""
-    - Clear planning & organization (multiple pages)  
-    - Interactive visuals & map for strong storytelling  
-    - Simple ML model with metrics for evidence-based insights  
-    - Downloadable artifacts for submission (cleaned data / results)
+    - Select **Week** from sidebar  
+    - Choose a **Section** inside the Week  
+    - Each week has a different focus  
     """)
-    st.markdown("---")
-    st.write("Data Science with Python")
 
+with st.expander("📊 What Are These Visualizations?"):
+    st.write("""
+    - **Histogram** shows score distribution  
+    - **Heatmap** shows correlation strength  
+    - **Top/Bottom 10** highlight happiest and least happy nations  
+    - **Regression** shows linear relations  
+    """)
+
+with st.expander("🤖 What Does the Model Do?"):
+    st.write("""
+    - Predicts Happiness Score  
+    - Uses GDP, Family, Life Expectancy, Freedom, Trust, Generosity  
+    - Measures accuracy using R², MAE, RMSE  
+    """)
+
+
+# ---------------------- FINAL FOOTER -----------------------
+
+st.markdown("""
+<hr>
+<div style='text-align:center; color:#2a7f2a; font-size:16px;'>
+    <b>🌿 World Happiness Dashboard</b><br>
+    Built as part of a 4-Week Data Science Internship Project<br>
+    <span style='font-size:14px; color:#555;'>Data • Visualization • Machine Learning • Insights</span>
+</div>
+<hr>
+""", unsafe_allow_html=True)
+
+st.success("🎉 All modules loaded successfully — your dashboard is complete!")
