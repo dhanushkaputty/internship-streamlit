@@ -66,6 +66,8 @@ st.markdown("""
 # FIX RADIO LABEL TEXT VISIBILITY (VERY IMPORTANT)
 import streamlit as st
 
+
+
 st.markdown("""
 <style>
 
@@ -74,7 +76,7 @@ st.markdown("""
         background-color: #f4fff4 !important;
     }
 
-    /* Make ALL sidebar text visible & clean */
+    /* Make all sidebar text visible & clean */
     section[data-testid="stSidebar"] * {
         color: black !important;
         font-size: 16px !important;
@@ -88,7 +90,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Fix selectbox LABEL */
+    /* Fix selectbox label */
     label {
         color: black !important;
         font-size: 16px !important;
@@ -98,7 +100,7 @@ st.markdown("""
     /* ✅ Fix selectbox SELECTED VALUE at cursor */
     div[data-baseweb="select"] > div {
         background-color: #d0f0d0 !important;  /* Light green background */
-        color: white !important;               /* Text stays visible */
+        color: black !important;               /* Text visible */
         font-size: 16px !important;
         font-weight: 600 !important;
     }
@@ -119,7 +121,6 @@ st.markdown("""
 
 </style>
 """, unsafe_allow_html=True)
-
 
 
 # ---------------- SIDEBAR NAVIGATION (PREMIUM WITH EMOJIS) ----------------
