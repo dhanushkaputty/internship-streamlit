@@ -74,10 +74,10 @@ st.sidebar.markdown("""
 week_page = st.sidebar.radio(
     "Select Internship Week:",
     [
-        "📘 Week 1 – Planning",
-        "📗 Week 2 – Data Analysis",
-        "📙 Week 3 – Visualization",
-        "📕 Week 4 – Reflection"
+        " Week 1 – Planning",
+        " Week 2 – Data Analysis",
+        " Week 3 – Visualization",
+        " Week 4 – Reflection"
     ]
 )
 
@@ -85,13 +85,13 @@ week_page = st.sidebar.radio(
 section_page = st.sidebar.radio(
     "Select Section:",
     [
-        "🏠 Home",
-        "📁 Data",
-        "📊 Visualizations",
-        "🗺️ Map",
-        "🤖 Modeling",
-        "🔍 Insights",
-        "ℹ️ About"
+        " Home",
+        " Data",
+        " Visualizations",
+        " Map",
+        " Modeling",
+        " Insights",
+        " About"
     ]
 )
 # ---------------------- DATASET UPLOAD ----------------------
