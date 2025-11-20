@@ -107,6 +107,32 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
+    /* ✅ Fix selected item visibility */
+    ul[role="listbox"] li[aria-selected="true"] {
+        background-color: #d0f0d0 !important;  /* Light green background */
+        color: black !important;              /* Ensure text stays visible */
+        font-weight: 600 !important;
+    }
+
+</style>
+""", unsafe_allow_html=True)
+        font-weight: 600 !important;
+    }
+
+    /* Fix selectbox SELECTED VALUE */
+    div[data-baseweb="select"] > div {
+        color: black !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+
+    /* Fix text inside dropdown menu */
+    ul[role="listbox"] li {
+        color: black !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
