@@ -64,9 +64,10 @@ st.markdown("""
 # ---------------- SIDEBAR NAVIGATION (TEXT ONLY — CLEAN) ----------------
 
 # FIX RADIO LABEL TEXT VISIBILITY (VERY IMPORTANT)
+import streamlit as st
+
 st.markdown("""
 <style>
-
     /* Sidebar background */
     section[data-testid="stSidebar"] {
         background-color: #f4fff4 !important;
@@ -107,34 +108,16 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* ✅ Fix selected item visibility */
+    /* ✅ Fix selected item visibility in dropdown */
     ul[role="listbox"] li[aria-selected="true"] {
         background-color: #d0f0d0 !important;  /* Light green background */
-        color: black !important;              /* Ensure text stays visible */
+        color: black !important;                /* Ensure text stays visible */
         font-weight: 600 !important;
     }
 
 </style>
 """, unsafe_allow_html=True)
-        font-weight: 600 !important;
-    }
 
-    /* Fix selectbox SELECTED VALUE */
-    div[data-baseweb="select"] > div {
-        color: black !important;
-        font-size: 16px !important;
-        font-weight: 600 !important;
-    }
-
-    /* Fix text inside dropdown menu */
-    ul[role="listbox"] li {
-        color: black !important;
-        font-size: 16px !important;
-        font-weight: 500 !important;
-    }
-
-</style>
-""", unsafe_allow_html=True)
 
 
 # ---------------- SIDEBAR NAVIGATION (PREMIUM WITH EMOJIS) ----------------
