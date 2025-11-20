@@ -59,27 +59,35 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ---------------------- SIDEBAR NAVIGATION ----------------------
-st.sidebar.markdown("""
-<div style="text-align:center;">
-    <h2 style="color:#2a7f2a;">🌿 Navigation</h2>
-    <p style="font-size:14px; color:#666;">
-        Choose Week → Choose Section
-    </p>
-</div>
-<hr>
-""", unsafe_allow_html=True)
+# ---------------- SIDEBAR NAVIGATION (TEXT ONLY) ----------------
 
-# Week selection
-week_page = st.sidebar.radio(
-    "Select Internship Week:",
-    [
-        " Week 1 – Planning",
-        " Week 2 – Data Analysis",
-        " Week 3 – Visualization",
-        " Week 4 – Reflection"
-    ]
+st.sidebar.title("Navigation")
+
+# Week selection (no emojis, no bullets)
+week_page = st.sidebar.selectbox(
+    "Select Internship Week",
+    (
+        "Week 1 – Planning",
+        "Week 2 – Data Analysis",
+        "Week 3 – Visualization",
+        "Week 4 – Modeling & Reflection"
+    )
 )
+
+# Section menu (no emojis, no bullets)
+section_page = st.sidebar.radio(
+    "Choose Section",
+    (
+        "Home",
+        "Data",
+        "Visualizations",
+        "Map",
+        "Modeling",
+        "Insights",
+        "About"
+    )
+)
+
 
 # Section selection
 section_page = st.sidebar.radio(
