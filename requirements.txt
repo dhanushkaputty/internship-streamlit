@@ -1,5 +1,8 @@
-streamlit
+streamlit>=1.18
 pandas
-seaborn
-matplotlib
 numpy
+matplotlib
+seaborn
+plotly
+scikit-learn
+
