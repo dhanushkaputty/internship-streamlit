@@ -276,5 +276,5 @@ if page == "About":
     - Downloadable artifacts for submission (cleaned data / results)
     """)
     st.markdown("---")
-    st.write("If you want customization (colors, extra charts, or ML upgrades like cross-validation or pipelines), tell me which part to extend and I will provide the code.")
-a Science with Python ")
+    st.write("Data Science with Python")
+
