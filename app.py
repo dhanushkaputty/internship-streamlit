@@ -111,7 +111,7 @@ st.markdown("""
     /* ✅ Fix selected item visibility in dropdown */
     ul[role="listbox"] li[aria-selected="true"] {
         background-color: #d0f0d0 !important;  /* Light green background */
-        color: black !important;                /* Ensure text stays visible */
+        color: white !important;                /* Ensure text stays visible */
         font-weight: 600 !important;
     }
 
