@@ -216,7 +216,7 @@ if week_page == "📘 Week 1 – Planning":
         st.write("""
         Week 1 focuses on **planning**, **strategy**, and understanding the dataset.
         
-        ### 🎯 Objectives of Week 1:
+        ###  Objectives of Week 1:
         - Understand dataset structure  
         - Define research questions  
         - Plan cleaning & transformation steps  
@@ -306,7 +306,7 @@ if week_page == "📘 Week 1 – Planning":
         - Strong Family Support → Higher well-being  
         - Freedom and Trust → Moderate but important influence  
         
-        ### 🎯 Expected Correlations:
+        ###  Expected Correlations:
         - GDP ↗ Happiness  
         - Life Expectancy ↗ Happiness  
         - Freedom ↗ Happiness  
@@ -359,10 +359,10 @@ elif week_page == "📗 Week 2 – Data Analysis":
         st.subheader("❗ Missing Values")
         st.write(df.isnull().sum())
 
-        st.subheader("📈 Summary Statistics")
+        st.subheader(" Summary Statistics")
         st.write(df.describe())
 
-        st.subheader("🔧 Cleaning Applied")
+        st.subheader(" Cleaning Applied")
         st.write("""
         - Column names standardized  
         - Checked for missing values  
@@ -374,25 +374,25 @@ elif week_page == "📗 Week 2 – Data Analysis":
         st.markdown("<div class='section-header'>📗 Week 2 – Basic EDA Visualizations</div>", unsafe_allow_html=True)
 
         # ------- Histogram of Happiness Score -------
-        st.subheader("📌 Distribution of Happiness Score")
+        st.subheader(" Distribution of Happiness Score")
         fig, ax = plt.subplots(figsize=(7,4))
         sns.histplot(df["Happiness_Score"], kde=True, color="green", ax=ax)
         st.pyplot(fig)
 
         # ------- GDP vs Happiness -------
-        st.subheader("📌 GDP per Capita vs Happiness")
+        st.subheader(" GDP per Capita vs Happiness")
         fig, ax = plt.subplots(figsize=(7,4))
         sns.scatterplot(data=df, x="GDP_per_Capita", y="Happiness_Score", color="blue", ax=ax)
         st.pyplot(fig)
 
         # ------- Life Expectancy vs Happiness -------
-        st.subheader("📌 Life Expectancy vs Happiness")
+        st.subheader(" Life Expectancy vs Happiness")
         fig, ax = plt.subplots(figsize=(7,4))
         sns.scatterplot(data=df, x="Life_Expectancy", y="Happiness_Score", color="red", ax=ax)
         st.pyplot(fig)
 
         # ------- Pairplot Preview -------
-        st.subheader("📌 Pairplot (Preview of Week 3)")
+        st.subheader(" Pairplot (Preview of Week 3)")
         st.write("A full pairplot will be shown in Week 3. For now, a small preview:")
         fig = sns.pairplot(df[["Happiness_Score", "GDP_per_Capita", "Family", "Life_Expectancy"]])
         st.pyplot(fig)
@@ -458,7 +458,7 @@ elif week_page == "📙 Week 3 – Visualization":
         st.write("""
         Week 3 focuses on **data visualization and interpretation**.
 
-        ### 🎯 Visualizations Covered:
+        ###  Visualizations Covered:
         - Histogram  
         - Top/Bottom 10 countries  
         - Correlation Heatmap  
@@ -476,7 +476,7 @@ elif week_page == "📙 Week 3 – Visualization":
         st.write("Below is the cleaned dataset used for Week 3 visualizations:")
         st.dataframe(df.head())
 
-        st.subheader("📌 Correlation Table")
+        st.subheader(" Correlation Table")
         corr = df.corr(numeric_only=True)
         st.write(corr)
 
@@ -485,7 +485,7 @@ elif week_page == "📙 Week 3 – Visualization":
         st.markdown("<div class='section-header'>📙 Week 3 – Visualization Dashboard</div>", unsafe_allow_html=True)
 
         # ------------ HISTOGRAM ------------
-        st.subheader("📌 Distribution of Happiness Score")
+        st.subheader(" Distribution of Happiness Score")
         fig, ax = plt.subplots(figsize=(7, 4))
         sns.histplot(df["Happiness_Score"], kde=True, color="#2a7f2a", ax=ax)
         st.pyplot(fig)
@@ -537,7 +537,7 @@ elif week_page == "📙 Week 3 – Visualization":
         st.pyplot(fig)
 
         # ------------ PAIRPLOT ------------
-        st.subheader("🔗 Pairplot of Key Factors")
+        st.subheader(" Pairplot of Key Factors")
         pair_cols = ["GDP_per_Capita", "Family", "Life_Expectancy", "Freedom", "Happiness_Score"]
         fig = sns.pairplot(df[pair_cols], diag_kind="kde")
         st.pyplot(fig)
@@ -799,7 +799,7 @@ Thank you.
 
 # ---------------------- HELP SECTION -----------------------
 st.markdown("<hr>", unsafe_allow_html=True)
-st.subheader("❓ Need Help Understanding the Dashboard?")
+st.subheader(" Need Help Understanding the Dashboard?")
 
 with st.expander("📘 How to Navigate Weeks & Sections"):
     st.write("""
